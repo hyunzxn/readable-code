@@ -6,11 +6,14 @@ import cleancode.minesweeper.tobe.minesweeper.board.cell.Cells;
 import cleancode.minesweeper.tobe.minesweeper.board.cell.EmptyCell;
 import cleancode.minesweeper.tobe.minesweeper.board.cell.LandMineCell;
 import cleancode.minesweeper.tobe.minesweeper.board.cell.NumberCell;
-import cleancode.minesweeper.tobe.minesweeper.gamelevel.GameLevel;
 import cleancode.minesweeper.tobe.minesweeper.board.position.CellPosition;
 import cleancode.minesweeper.tobe.minesweeper.board.position.CellPositions;
 import cleancode.minesweeper.tobe.minesweeper.board.position.RelativePosition;
+import cleancode.minesweeper.tobe.minesweeper.gamelevel.GameLevel;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
+import java.util.Stack;
 
 public class GameBoard {
 
@@ -143,25 +146,38 @@ public class GameBoard {
     }
 
     private void openSurroundedCell(CellPosition cellPosition) {
-        if (isOpenedCell(cellPosition)) {
+        Deque<CellPosition> deque = new ArrayDeque<>();
+        deque.push(cellPosition);
+
+        while (!deque.isEmpty()) {
+            openAndPushCellAt(deque);
+        }
+    }
+
+    private void openAndPushCellAt(Deque<CellPosition> deque) {
+        CellPosition currentCellPosition = deque.pop();
+
+        if (isOpenedCell(currentCellPosition)) {
             return;
         }
-        if (isLandMineCellAt(cellPosition)) {
+        if (isLandMineCellAt(currentCellPosition)) {
             return;
         }
 
-        openOneCellAt(cellPosition);
+        openOneCellAt(currentCellPosition);
 
-        if (doesCellHaveLandMineCount(cellPosition)) {
+        if (doesCellHaveLandMineCount(currentCellPosition)) {
             return;
         }
 
         List<CellPosition> surroundedPositions = calculateSurroundedPositions(
-            cellPosition,
+            currentCellPosition,
             getRowSize(),
             getColSize()
         );
-        surroundedPositions.forEach(this::openSurroundedCell);
+        for (CellPosition surroundedPosition : surroundedPositions) {
+            deque.push(surroundedPosition);
+        }
     }
 
     private void openOneCellAt(CellPosition cellPosition) {
